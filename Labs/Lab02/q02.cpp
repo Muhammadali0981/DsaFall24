@@ -14,7 +14,13 @@ void multiply(int mat1[2][2], int mat2[3][2], int colA, int rowA, int colB, int 
         return;
     }
     int **arr = new int*[rowA];
+    
     for (int i = 0; i < rowA; i++) arr[i] = new int[colB];
+    for (int i = 0; i < rowA; i++){
+        for(int j = 0;j < colB; j++ ){
+            arr[i][j] = 0;
+        }
+    }
     for (int i = 0; i < rowA; i++) {
         for (int j = 0; j < colB; j++) {
             for (int k = 0; k < colA; k++) {
@@ -31,5 +37,5 @@ void multiply(int mat1[2][2], int mat2[3][2], int colA, int rowA, int colB, int 
 int main() {
     int A[2][2] = { {1, 0}, {0, 1} };
     int B[3][2] = { {7, 8}, {9, 10}, {11, 12} };
-    multiply(A, B, 3, 2, 2, 3);
+    multiply(A, B, 2, 2, 3, 2);
 }
