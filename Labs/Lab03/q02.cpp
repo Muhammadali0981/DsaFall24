@@ -1,7 +1,7 @@
 /*
     Name:Muhammad Ali
-    Date:02/09/24
-    Desc: linked list 
+    Date:08/09/24
+    Desc: revrse
 */
 #include <iostream>
 
@@ -140,17 +140,22 @@ public:
 
     }
 
-    int count() {
-        
-        int c = 0;
+    void reverse(){
         Node* current = this->head;
+        Node* perv = nullptr;
+        Node* next = nullptr;
+
         while (current != nullptr){
-            c += 1;
-            current = current->next;
+            next = current->next;
+            current->next = perv;
+            perv = current;
+            current = next;
+
         }
-        return c;
+
+        this->head = perv;
     }
-    
+
     void print() {
         
         Node* current = this->head;
@@ -183,8 +188,12 @@ int main(){
     list.deleteLastNode();
     cout << "deleted last node" << endl;
     list.print();
-    list.deleteNode(1);
-    cout << "deleted node with value 1" << endl;
+    list.deleteNode(7);
+    cout << "deleted last node with value 7" << endl;
     list.print();
-    cout << list.count() << endl;
+    cout << "before reversing:" << endl;
+    list.print();
+    cout << "after reversing:" << endl;
+    list.reverse();
+    list.print();
 }
