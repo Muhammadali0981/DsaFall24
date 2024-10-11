@@ -23,9 +23,9 @@ public:
 
 class linkedlist
 {
-private:
-    Node* head;
+
 public:
+    Node* head;
     linkedlist(): head(nullptr){}
     linkedlist(Node* h):head(h){}
 
@@ -92,7 +92,7 @@ int main()
     list.insertAtEnd(8);
     cout << "after inserting and appending" << endl;
     list.print();
-    list.reverse(nullptr, nullptr);
+    list.reverse(list.head, nullptr);
     list.print();
     return 0;
 }
