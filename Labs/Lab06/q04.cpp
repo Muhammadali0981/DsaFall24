@@ -107,20 +107,20 @@ int main() {
     queue.enqueue(20);
     queue.enqueue(30);
 
-    cout << "Front of queue: " << queue.front() << endl; // Should print 10
+    cout << "Front of queue: " << queue.front() << endl; 
 
-    cout << "Dequeued: " << queue.dequeue() << endl; // Should print 10
-    cout << "Dequeued: " << queue.dequeue() << endl; // Should print 20
+    cout << "Dequeued: " << queue.dequeue() << endl; 
+    cout << "Dequeued: " << queue.dequeue() << endl; 
 
     queue.enqueue(40);
     queue.enqueue(50);
 
-    cout << "Front of queue: " << queue.front() << endl; // Should print 30
+    cout << "Front of queue: " << queue.front() << endl; 
 
-    cout << "Dequeued: " << queue.dequeue() << endl; // Should print 30
-    cout << "Dequeued: " << queue.dequeue() << endl; // Should print 40
-    cout << "Dequeued: " << queue.dequeue() << endl; // Should print 50
-    cout << "Dequeued: " << queue.dequeue() << endl; // Should print "Queue is empty"
+    cout << "Dequeued: " << queue.dequeue() << endl; 
+    cout << "Dequeued: " << queue.dequeue() << endl; 
+    cout << "Dequeued: " << queue.dequeue() << endl; 
+    cout << "Dequeued: " << queue.dequeue() << endl; 
 
     return 0;
 }
