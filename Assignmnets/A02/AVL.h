@@ -1,197 +1,211 @@
-#ifndef AVL_H
-#define AVL_H
+#ifndef AVL_TABLE_H
+#define AVL_TABLE_H
 
 #include <iostream>
+#include <vector>
+#include <chrono>
+#include <algorithm>
 #include "record.h"
+using namespace std;
 
-class Node {
-    Record record;
-    Node* left;
-    Node* right;
+
+
+class AVLNode {
+public:
+    Record data;
+    AVLNode* left;
+    AVLNode* right;
     int height;
 
-public:
-    Node(Record r) {
-        record = r;
-        left = right = nullptr;
-        height = 1;
-    }
-
-    friend class AVL;
+    AVLNode(const Record& record) : data(record), left(nullptr), right(nullptr), height(1) {}
 };
 
-class AVL {
-    Node* root;
+class AVLTable {
+private:
+    AVLNode* root;
 
-    int height_(Node* n) { return n ? n->height : 0; }
-    int getBalance(Node* n) { return n ? height_(n->left) - height_(n->right) : 0; }
+    int getHeight(AVLNode* node) {
+        return node ? node->height : 0;
+    }
 
-    Node* rotateRight(Node* y) {
-        Node* x = y->left;
-        Node* T2 = x->right;
+    int getBalanceFactor(AVLNode* node) {
+        return node ? getHeight(node->left) - getHeight(node->right) : 0;
+    }
+
+    void updateHeight(AVLNode* node) {
+        node->height = 1 + std::max(getHeight(node->left), getHeight(node->right));
+    }
+
+    AVLNode* rotateRight(AVLNode* y) {
+        AVLNode* x = y->left;
+        AVLNode* T2 = x->right;
 
         x->right = y;
         y->left = T2;
 
-        y->height = std::max(height_(y->left), height_(y->right)) + 1;
-        x->height = std::max(height_(x->left), height_(x->right)) + 1;
+        updateHeight(y);
+        updateHeight(x);
 
         return x;
     }
 
-    Node* rotateLeft(Node* x) {
-        Node* y = x->right;
-        Node* T2 = y->left;
+    AVLNode* rotateLeft(AVLNode* x) {
+        AVLNode* y = x->right;
+        AVLNode* T2 = y->left;
 
         y->left = x;
         x->right = T2;
 
-        x->height = std::max(height_(x->left), height_(x->right)) + 1;
-        y->height = std::max(height_(y->left), height_(y->right)) + 1;
+        updateHeight(x);
+        updateHeight(y);
 
         return y;
     }
 
-    Node* insert(Node* curr, Record r) {
-        if (curr == nullptr) {
-            return new Node(r);
+    AVLNode* insertRecursive(AVLNode* node, const Record& record) {
+        if (node == nullptr) {
+            return new AVLNode(record);
         }
-        if (r.getId() < curr->record.getId()) {
-            curr->left = insert(curr->left, r);
-        } else if (r.getId() > curr->record.getId()) {
-            curr->right = insert(curr->right, r);
+
+        if (record.id < node->data.id) {
+            node->left = insertRecursive(node->left, record);
+        } else if (record.id > node->data.id) {
+            node->right = insertRecursive(node->right, record);
         } else {
-            return curr; // Duplicate IDs are not allowed
+            return node; // Duplicate keys not allowed
         }
 
-        curr->height = std::max(height_(curr->left), height_(curr->right)) + 1;
+        updateHeight(node);
 
-        int balance = getBalance(curr);
+        int balance = getBalanceFactor(node);
 
         // Left Left Case
-        if (balance > 1 && r.getId() < curr->left->record.getId()) {
-            return rotateRight(curr);
+        if (balance > 1 && record.id < node->left->data.id) {
+            return rotateRight(node);
         }
 
         // Right Right Case
-        if (balance < -1 && r.getId() > curr->right->record.getId()) {
-            return rotateLeft(curr);
+        if (balance < -1 && record.id > node->right->data.id) {
+            return rotateLeft(node);
         }
 
         // Left Right Case
-        if (balance > 1 && r.getId() > curr->left->record.getId()) {
-            curr->left = rotateLeft(curr->left);
-            return rotateRight(curr);
+        if (balance > 1 && record.id > node->left->data.id) {
+            node->left = rotateLeft(node->left);
+            return rotateRight(node);
         }
 
         // Right Left Case
-        if (balance < -1 && r.getId() < curr->right->record.getId()) {
-            curr->right = rotateRight(curr->right);
-            return rotateLeft(curr);
+        if (balance < -1 && record.id < node->right->data.id) {
+            node->right = rotateRight(node->right);
+            return rotateLeft(node);
         }
 
-        return curr;
+        return node;
     }
 
-    Node* minValueNode(Node* curr) {
-        while (curr->left) {
-            curr = curr->left;
+    AVLNode* searchRecursive(AVLNode* node, int id) {
+        if (node == nullptr || node->data.id == id) {
+            return node;
         }
-        return curr;
+
+        if (id < node->data.id) {
+            return searchRecursive(node->left, id);
+        }
+
+        return searchRecursive(node->right, id);
     }
 
-    Node* deleteNode(Node* curr, int id) {
-        if (!curr) return nullptr;
+    AVLNode* findMinNode(AVLNode* node) {
+        while (node->left != nullptr) {
+            node = node->left;
+        }
+        return node;
+    }
 
-        if (id < curr->record.getId()) {
-            curr->left = deleteNode(curr->left, id);
-        } else if (id > curr->record.getId()) {
-            curr->right = deleteNode(curr->right, id);
+    AVLNode* deleteRecursive(AVLNode* node, int id) {
+        if (node == nullptr) return nullptr;
+
+        if (id < node->data.id) {
+            node->left = deleteRecursive(node->left, id);
+        } else if (id > node->data.id) {
+            node->right = deleteRecursive(node->right, id);
         } else {
-            if (!curr->left || !curr->right) {
-                Node* temp = curr->left ? curr->left : curr->right;
-                if (!temp) {
-                    temp = curr;
-                    curr = nullptr;
-                } else {
-                    *curr = *temp;
-                }
-                delete temp;
-            } else {
-                Node* temp = minValueNode(curr->right);
-                curr->record = temp->record;
-                curr->right = deleteNode(curr->right, temp->record.getId());
+            // Node with only one child or no child
+            if (node->left == nullptr) {
+                AVLNode* temp = node->right;
+                delete node;
+                return temp;
+            } else if (node->right == nullptr) {
+                AVLNode* temp = node->left;
+                delete node;
+                return temp;
             }
+
+            // Node with two children: Get the inorder successor
+            AVLNode* temp = findMinNode(node->right);
+            node->data = temp->data;
+            node->right = deleteRecursive(node->right, temp->data.id);
         }
 
-        if (!curr) return nullptr;
+        if (node == nullptr) return nullptr;
 
-        curr->height = std::max(height_(curr->left), height_(curr->right)) + 1;
+        updateHeight(node);
 
-        int balance = getBalance(curr);
+        int balance = getBalanceFactor(node);
 
         // Left Left Case
-        if (balance > 1 && getBalance(curr->left) >= 0) {
-            return rotateRight(curr);
+        if (balance > 1 && getBalanceFactor(node->left) >= 0) {
+            return rotateRight(node);
         }
 
         // Left Right Case
-        if (balance > 1 && getBalance(curr->left) < 0) {
-            curr->left = rotateLeft(curr->left);
-            return rotateRight(curr);
+        if (balance > 1 && getBalanceFactor(node->left) < 0) {
+            node->left = rotateLeft(node->left);
+            return rotateRight(node);
         }
 
         // Right Right Case
-        if (balance < -1 && getBalance(curr->right) <= 0) {
-            return rotateLeft(curr);
+        if (balance < -1 && getBalanceFactor(node->right) <= 0) {
+            return rotateLeft(node);
         }
 
         // Right Left Case
-        if (balance < -1 && getBalance(curr->right) > 0) {
-            curr->right = rotateRight(curr->right);
-            return rotateLeft(curr);
+        if (balance < -1 && getBalanceFactor(node->right) > 0) {
+            node->right = rotateRight(node->right);
+            return rotateLeft(node);
         }
 
-        return curr;
+        return node;
     }
 
-    Node* search(Node* curr, int id) {
-        if (!curr || curr->record.getId() == id) {
-            return curr;
+    void clearRecursive(AVLNode* node) {
+        if (node) {
+            clearRecursive(node->left);
+            clearRecursive(node->right);
+            delete node;
         }
-        if (id < curr->record.getId()) {
-            return search(curr->left, id);
-        }
-        return search(curr->right, id);
     }
-
-    void inOrder(Node* curr) {
-    if (curr) {
-        inOrder(curr->left);  
-        std::cout << curr->record.getAge() << " " << curr->record.getId() << " " << curr->record.getName() << std::endl;  // Print the current node's record
-        inOrder(curr->right);  
-    }
-}
 
 public:
-    AVL() : root(nullptr) {}
+    AVLTable() : root(nullptr) {}
 
-    void insert(Record r) {
-        root = insert(root, r);
+    ~AVLTable() {
+        clearRecursive(root);
     }
 
-    void deleteNode(int id) {
-        root = deleteNode(root, id);
+    void insert(const Record& record) {
+        root = insertRecursive(root, record);
     }
 
-    bool search(int id) {
-        return search(root, id) != nullptr;
+    Record* search(int id) {
+        AVLNode* result = searchRecursive(root, id);
+        return result ? &(result->data) : nullptr;
     }
 
-    void inOrderTraversal() {
-        inOrder(root);
-        std::cout << std::endl;
+    void remove(int id) {
+        root = deleteRecursive(root, id);
     }
 };
 
-#endif // AVL_H
+#endif 
